@@ -27,7 +27,9 @@ namespace Webshot
 			int browserHeight = Convert.ToInt32(ConfigurationManager.AppSettings["browserHeight"]);
 
 			Webshotter webshotter = new Webshotter(fileName, browserWidth, browserHeight);
-			webshotter.CreateWebshots();			
+			webshotter.CreateWebshots();
+
+			Console.ReadKey();
 		}
 
 	}

@@ -71,7 +71,7 @@ namespace Webshot
 		{
 			string strippedUrl = url.Replace("http://", "").Replace("https://", "");
 
-			return $"{index:D3} - {strippedUrl}.png";
+			return $"{index:D3} - {strippedUrl}.bmp";
 		}
 
 
@@ -80,7 +80,7 @@ namespace Webshot
 			Bitmap bitmap   = GenerateScreenshot(url, this.browserWidth, this.browserHeight);
 			string fileName = CreateFileName(url, index);
 
-			bitmap.Save(fileName, ImageFormat.Png);
+			bitmap.Save(fileName);
 		}
 
 
@@ -90,7 +90,9 @@ namespace Webshot
 		{
 			for (int i = 0; i < urls.Length; i++)
 			{
-				CreateWebshot(urls[i], i);
+				string url = urls[i];
+				Console.WriteLine($"Webshotting {url}...");
+				CreateWebshot(url, i);
 			}
 		}
 	}

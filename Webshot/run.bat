@@ -1,0 +1,1 @@
+﻿Webshot.exe urls.txt
