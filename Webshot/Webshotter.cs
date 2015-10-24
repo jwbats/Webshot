@@ -42,7 +42,7 @@ namespace Webshot
 		}
 
 
-		private Bitmap GenerateScreenshot(string url, int width, int height)
+		private Bitmap _GenerateScreenshot(string url, int width, int height)
 		{
 			// Load the webpage into a WebBrowser control
 			WebBrowser webBrowser = new WebBrowser();
@@ -67,6 +67,20 @@ namespace Webshot
 		}
 
 
+		private Bitmap GenerateScreenshot(string url, int width, int height)
+		{
+			try
+			{
+				return _GenerateScreenshot(url, width, height);
+			}
+			catch (Exception exception)
+			{
+				Console.WriteLine(exception.ToString());
+				return null;
+			}
+		}
+
+
 		private string CreateFileName(string url, int index)
 		{
 			string strippedUrl = url.Replace("http://", "").Replace("https://", "");
@@ -80,7 +94,7 @@ namespace Webshot
 			Bitmap bitmap   = GenerateScreenshot(url, this.browserWidth, this.browserHeight);
 			string fileName = CreateFileName(url, index);
 
-			bitmap.Save(fileName);
+			bitmap?.Save(fileName);
 		}
 
 
