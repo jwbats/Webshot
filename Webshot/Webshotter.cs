@@ -102,12 +102,18 @@ namespace Webshot
 
 		public void CreateWebshots()
 		{
-			for (int i = 0; i < urls.Length; i++)
+			int nrUrls = this.urls.Length;
+
+			Console.WriteLine($"Webshotting {nrUrls} urls.");
+
+			for (int i = 0; i < nrUrls; i++)
 			{
 				string url = urls[i];
 				Console.WriteLine($"Webshotting {url}...");
 				CreateWebshot(url, i);
 			}
+
+			Console.WriteLine($"Webshotted {nrUrls} urls.");
 		}
 	}
 }
