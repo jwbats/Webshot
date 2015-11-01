@@ -1,3 +1,8 @@
 http://google.com
 http://tweakers.net
 http://gamer.nl
+http://huffingtonpost.com
+http://nextbigfuture.com
+http://kurzweilai.net
+http://singularityhub.com
+http://news.ycombinator.com

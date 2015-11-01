@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Configuration;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,23 +16,41 @@ namespace Webshot
 	class Webshotter
 	{
 
-		// ---------- Constructor & Members
+		#region ================================================== Constructor & Members ==================================================
 
 		private string fileName;
 		private int browserWidth;
 		private int browserHeight;
+		private int timeOut;
 		private string[] urls;
 
-		public Webshotter(string fileName, int browserWidth, int browserHeight)
+		private ConcurrentQueue<string> cqSuccess;
+		private ConcurrentQueue<string> cqTimeout;
+		private ConcurrentQueue<string> cqException;
+
+		public Webshotter(string fileName, int browserWidth, int browserHeight, int timeOut)
 		{
 			this.fileName      = fileName;
 			this.browserWidth  = browserWidth;
 			this.browserHeight = browserHeight;
+			this.timeOut       = timeOut;
 			this.urls          = CreateUrls();
 		}
 
+		#endregion ================================================== Constructor & Members ==================================================
 
-		// ---------- Private Methods
+
+
+
+		#region ================================================== Private Methods ==================================================
+
+		private void InitConcurrentQueues()
+		{
+			cqSuccess   = new ConcurrentQueue<string>();
+			cqTimeout   = new ConcurrentQueue<string>();
+			cqException = new ConcurrentQueue<string>();
+		}
+
 
 		private string[] CreateUrls()
 		{
@@ -98,10 +118,59 @@ namespace Webshot
 		}
 
 
-		// ---------- Public Methods
-
-		public void CreateWebshots()
+		/// <summary>
+		/// Thread entry point.
+		/// </summary>
+		private void CreateWebshot_TryCatch(string url, int index)
 		{
+			try
+			{
+				CreateWebshot(url, index);
+			}
+			catch (Exception exception)
+			{
+				Console.WriteLine(exception.ToString());
+				this.cqException.Enqueue(url);
+			}
+		}
+
+
+		private void CreateWebshot_Task(string url, int index)
+		{
+			ThreadStart threadStart = new ThreadStart(
+				() => { CreateWebshot(url, index); }	
+			);
+
+			Thread thread = new Thread(threadStart);
+
+			thread.SetApartmentState(ApartmentState.STA); // required by WebBrowser component
+
+			thread.Start();
+
+			bool success = thread.Join(this.timeOut);
+
+			if (success)
+			{
+				this.cqSuccess.Enqueue(url);
+			}
+			else
+			{
+				this.cqTimeout.Enqueue(url);
+				thread.Abort();
+			}
+		}
+
+		#endregion ================================================== Private Methods ==================================================
+
+
+
+
+		#region ================================================== Public Methods ==================================================
+
+		public void CreateWebshots(out List<string> success, out List<string> timeout, out List<string> exception)
+		{
+			InitConcurrentQueues();
+
 			int nrUrls = this.urls.Length;
 
 			Console.WriteLine($"Webshotting {nrUrls} urls.");
@@ -110,10 +179,17 @@ namespace Webshot
 			{
 				string url = urls[i];
 				Console.WriteLine($"Webshotting {url}...");
-				CreateWebshot(url, i);
+				CreateWebshot_Task(url, i);
 			}
 
 			Console.WriteLine($"Webshotted {nrUrls} urls.");
+
+			success   = this.cqSuccess.ToList();
+			timeout   = this.cqTimeout.ToList();
+			exception = this.cqException.ToList();
 		}
+
+		#endregion ================================================== Public Methods ==================================================
+
 	}
 }
